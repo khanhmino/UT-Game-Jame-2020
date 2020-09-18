@@ -8,6 +8,15 @@ public class SwordController : MonoBehaviour
     public float pickupRange;
     public LayerMask pickupLayers;
     public Animator anim;
+    public bool swinging;
+
+
+
+    //Outline vars
+    public GameObject outlinedPickup = null;
+    public Material noAlpha;
+    public Material outline;
+
 
     // Start is called before the first frame update
     void Start()
@@ -19,23 +28,43 @@ public class SwordController : MonoBehaviour
     void Update()
     {
         PointToMouse();
-        LookForPickups();
+        FindClosestPickup().GetComponentInChildren<SpriteRenderer>();
         if (Input.GetMouseButtonDown(0))
         {
             SwingBlade();
         }
+
+
+        GameObject newClosestOutline = FindClosestPickup();
+        if(newClosestOutline != outlinedPickup)
+        {
+            outlinedPickup.GetComponentInChildren<SpriteRenderer>().material = noAlpha;
+            outlinedPickup = newClosestOutline;
+            outlinedPickup.GetComponentInChildren<SpriteRenderer>().material = outline;
+        }
+
     }
 
-    private GameObject[] LookForPickups()
+    /*
+     * Returns a GameObject that is the closest pickup within pickRange of the sword
+     * Returns NULL if no pickups are nearby
+     */ 
+    private GameObject FindClosestPickup()
     {
         Collider2D[] foundPickups = Physics2D.OverlapCircleAll(transform.position, pickupRange, pickupLayers);
-        GameObject[] pickupables = new GameObject[foundPickups.Length];
-        for(int i = 0; i < pickupables.Length; i++)
+
+        GameObject closestPickup = null;
+        float distFromClosest = pickupRange * 2;
+        for(int i = 0; i < foundPickups.Length; i++)
         {
-            print("Found pickup " + i);
-            pickupables[i] = foundPickups[i].gameObject;
+            var distFromi = Vector2.Distance(foundPickups[i].transform.position, transform.position);
+            if(distFromi < distFromClosest)
+            {
+                closestPickup = foundPickups[i].gameObject;
+                distFromClosest = distFromi;
+            }
         }
-        return pickupables;
+        return closestPickup;
     }
 
     private void PointToMouse()

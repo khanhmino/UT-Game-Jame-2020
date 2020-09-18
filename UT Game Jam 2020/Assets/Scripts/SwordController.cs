@@ -4,10 +4,11 @@ using UnityEngine;
 
 public class SwordController : MonoBehaviour
 {
+
     public GameObject sword;
     public float pickupRange;
     public LayerMask pickupLayers;
-    public Animator anim;
+    private Animator anim;
     public bool swinging;
 
 
@@ -27,7 +28,11 @@ public class SwordController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        PointToMouse();
+        if (!swinging)
+        {
+            PointToMouse();
+        }
+
         FindClosestPickup().GetComponentInChildren<SpriteRenderer>();
         if (Input.GetMouseButtonDown(0))
         {
@@ -36,9 +41,12 @@ public class SwordController : MonoBehaviour
 
 
         GameObject newClosestOutline = FindClosestPickup();
-        if(newClosestOutline != outlinedPickup)
+        if(newClosestOutline != outlinedPickup && newClosestOutline != null)
         {
-            outlinedPickup.GetComponentInChildren<SpriteRenderer>().material = noAlpha;
+            if (outlinedPickup != null)
+            {
+                outlinedPickup.GetComponentInChildren<SpriteRenderer>().material = noAlpha;
+            }
             outlinedPickup = newClosestOutline;
             outlinedPickup.GetComponentInChildren<SpriteRenderer>().material = outline;
         }
@@ -93,6 +101,12 @@ public class SwordController : MonoBehaviour
     }
     public void SwingBlade()
     {
+        swinging = true;
         anim.SetTrigger("Swinging");
+    }
+    private IEnumerator ResetSwinging(float delay)
+    {
+        yield return new WaitForSeconds(delay);
+        swinging = false;
     }
 }

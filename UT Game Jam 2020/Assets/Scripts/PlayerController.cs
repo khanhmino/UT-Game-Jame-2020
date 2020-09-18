@@ -21,6 +21,7 @@ public class PlayerController : MonoBehaviour
     {
         HandleMovement();
     }
+
     private void HandleMovement()
     {
         float horizontal = Input.GetAxis("Horizontal");

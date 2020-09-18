@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using DG.Tweening;
 
 public class SwordController : MonoBehaviour
 {
@@ -10,6 +11,7 @@ public class SwordController : MonoBehaviour
     public LayerMask pickupLayers;
     private Animator anim;
     public bool swinging;
+    public float swingCooldown;
 
 
 
@@ -18,6 +20,8 @@ public class SwordController : MonoBehaviour
     public Material noAlpha;
     public Material outline;
 
+    //Pickup vars
+    private bool hasBlade;
 
     // Start is called before the first frame update
     void Start()
@@ -33,24 +37,24 @@ public class SwordController : MonoBehaviour
             PointToMouse();
         }
 
-        FindClosestPickup().GetComponentInChildren<SpriteRenderer>();
-        if (Input.GetMouseButtonDown(0))
-        {
-            SwingBlade();
-        }
-
-
         GameObject newClosestOutline = FindClosestPickup();
-        if(newClosestOutline != outlinedPickup && newClosestOutline != null)
+        if(newClosestOutline != outlinedPickup)
         {
             if (outlinedPickup != null)
             {
                 outlinedPickup.GetComponentInChildren<SpriteRenderer>().material = noAlpha;
             }
             outlinedPickup = newClosestOutline;
-            outlinedPickup.GetComponentInChildren<SpriteRenderer>().material = outline;
+            if (outlinedPickup != null)
+            {
+                outlinedPickup.GetComponentInChildren<SpriteRenderer>().material = outline;
+            }
         }
 
+        if (Input.GetMouseButtonDown(0) && !swinging)
+        {
+            SwingBlade();
+        }
     }
 
     /*
@@ -87,7 +91,8 @@ public class SwordController : MonoBehaviour
         mousePos.x = mousePos.x - objPos.x;
         mousePos.y = mousePos.y - objPos.y;
         float angle = Mathf.Atan2(mousePos.y, mousePos.x) * Mathf.Rad2Deg;
-        transform.rotation = Quaternion.Euler(new Vector3(0, 0, angle - 90));
+
+        transform.DOLocalRotate(new Vector3(0, 0, angle - 90), .1f);
     }
 
     public void PickUpBlade(PickupController pickup)
@@ -97,12 +102,15 @@ public class SwordController : MonoBehaviour
 
     public void DiscardBlade()
     {
-
+        hasBlade = false;
     }
     public void SwingBlade()
     {
         swinging = true;
         anim.SetTrigger("Swinging");
+        StartCoroutine(ResetSwinging(swingCooldown));
+
+       
     }
     private IEnumerator ResetSwinging(float delay)
     {
